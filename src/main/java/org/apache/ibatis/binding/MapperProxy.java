@@ -44,6 +44,14 @@ public class MapperProxy<T> implements InvocationHandler, Serializable {
     this.methodCache = methodCache;
   }
 
+  /**
+   * Mapper方法真正执行的地方
+   * @param proxy
+   * @param method
+   * @param args
+   * @return
+   * @throws Throwable
+   */
   @Override
   public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
     try {
@@ -55,13 +63,18 @@ public class MapperProxy<T> implements InvocationHandler, Serializable {
     } catch (Throwable t) {
       throw ExceptionUtil.unwrapThrowable(t);
     }
+    //真正sql的执行地方
     final MapperMethod mapperMethod = cachedMapperMethod(method);
+    //执行Mapper方法
     return mapperMethod.execute(sqlSession, args);
   }
 
+  //是否缓存了对应的方法
   private MapperMethod cachedMapperMethod(Method method) {
+    //缓存中拿
     MapperMethod mapperMethod = methodCache.get(method);
     if (mapperMethod == null) {
+      //构建sql执行的类型SqlCommand，insert、update、delete及返回类型
       mapperMethod = new MapperMethod(mapperInterface, method, sqlSession.getConfiguration());
       methodCache.put(method, mapperMethod);
     }

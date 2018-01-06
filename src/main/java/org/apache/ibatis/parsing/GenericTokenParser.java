@@ -30,6 +30,7 @@ public class GenericTokenParser {
     this.handler = handler;
   }
 
+  //处理占位符#{}处理为?,${}第一次不处理，第二次处理为null
   public String parse(String text) {
     if (text == null || text.isEmpty()) {
       return "";
@@ -75,6 +76,8 @@ public class GenericTokenParser {
           builder.append(src, start, src.length - start);
           offset = src.length;
         } else {
+          //#{}处理占位符为?，handler=ParameterMappingTokenHandler,
+          // ${}，handler=VariableTokenHandler不处理，TextSqlNode处理为null,设置为的动态sql,BindingTokenParser解析具体的参数值
           builder.append(handler.handleToken(expression.toString()));
           offset = end + closeToken.length();
         }

@@ -52,11 +52,13 @@ public class XMLLanguageDriver implements LanguageDriver {
       return createSqlSource(configuration, parser.evalNode("/script"), parameterType);
     } else {
       // issue #127
+      //sql是否包含${}
       script = PropertyParser.parse(script, configuration.getVariables());
       TextSqlNode textSqlNode = new TextSqlNode(script);
+      //包含${}即为动态sql
       if (textSqlNode.isDynamic()) {
         return new DynamicSqlSource(configuration, textSqlNode);
-      } else {
+      } else {//原生sql
         return new RawSqlSource(configuration, script, parameterType);
       }
     }

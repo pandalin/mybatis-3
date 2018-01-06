@@ -46,29 +46,33 @@ public class MapperMethod {
   private final MethodSignature method;
 
   public MapperMethod(Class<?> mapperInterface, Method method, Configuration config) {
+    //SQL执行器
     this.command = new SqlCommand(config, mapperInterface, method);
+    //方法签名
     this.method = new MethodSignature(config, mapperInterface, method);
   }
 
   public Object execute(SqlSession sqlSession, Object[] args) {
     Object result;
+    //类型判断
     switch (command.getType()) {
-      case INSERT: {
+      case INSERT: {//新增
       Object param = method.convertArgsToSqlCommandParam(args);
         result = rowCountResult(sqlSession.insert(command.getName(), param));
         break;
       }
-      case UPDATE: {
+      case UPDATE: {//更新
         Object param = method.convertArgsToSqlCommandParam(args);
         result = rowCountResult(sqlSession.update(command.getName(), param));
         break;
       }
-      case DELETE: {
+      case DELETE: {//删除
         Object param = method.convertArgsToSqlCommandParam(args);
         result = rowCountResult(sqlSession.delete(command.getName(), param));
         break;
       }
-      case SELECT:
+      case SELECT://查询
+        //是否返回空且有对应的返回处理器，返回处理器详见第？章
         if (method.returnsVoid() && method.hasResultHandler()) {
           executeWithResultHandler(sqlSession, args);
           result = null;
@@ -80,6 +84,7 @@ public class MapperMethod {
           result = executeForCursor(sqlSession, args);
         } else {
           Object param = method.convertArgsToSqlCommandParam(args);
+          //执行查询
           result = sqlSession.selectOne(command.getName(), param);
         }
         break;

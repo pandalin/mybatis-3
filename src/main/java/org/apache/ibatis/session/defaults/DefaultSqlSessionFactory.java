@@ -88,12 +88,16 @@ public class DefaultSqlSessionFactory implements SqlSessionFactory {
   }
 
   private SqlSession openSessionFromDataSource(ExecutorType execType, TransactionIsolationLevel level, boolean autoCommit) {
+    //事务
     Transaction tx = null;
     try {
+      //解析environment节点时，根据配置的transactionManager得到TransactionFactory，这里我们配置的是JDBC，所以是JdbcTransactionFactory
       final Environment environment = configuration.getEnvironment();
       final TransactionFactory transactionFactory = getTransactionFactoryFromEnvironment(environment);
       tx = transactionFactory.newTransaction(environment.getDataSource(), level, autoCommit);
+      //创建Executor
       final Executor executor = configuration.newExecutor(tx, execType);
+      //创建DefaultSqlSession
       return new DefaultSqlSession(configuration, executor, autoCommit);
     } catch (Exception e) {
       closeTransaction(tx); // may have fetched a connection so lets call close()

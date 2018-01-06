@@ -121,16 +121,19 @@ public class MapperAnnotationBuilder {
   public void parse() {
     String resource = type.toString();
     if (!configuration.isResourceLoaded(resource)) {
+      //先找对应Mapper的Mapper.xml
       loadXmlResource();
       configuration.addLoadedResource(resource);
       assistant.setCurrentNamespace(type.getName());
       parseCache();
       parseCacheRef();
+      //Mapper中的方法
       Method[] methods = type.getMethods();
       for (Method method : methods) {
         try {
           // issue #237
           if (!method.isBridge()) {
+            //解析statement，Mapper中的每一个方法为1个statement
             parseStatement(method);
           }
         } catch (IncompleteElementException e) {
@@ -283,9 +286,11 @@ public class MapperAnnotationBuilder {
     return null;
   }
 
+  //创建Mapper中每一个方法的MappedStatement对象
   void parseStatement(Method method) {
     Class<?> parameterTypeClass = getParameterType(method);
     LanguageDriver languageDriver = getLanguageDriver(method);
+    //解析方法对应的sql
     SqlSource sqlSource = getSqlSourceFromAnnotations(method, parameterTypeClass, languageDriver);
     if (sqlSource != null) {
       Options options = method.getAnnotation(Options.class);
@@ -454,14 +459,19 @@ public class MapperAnnotationBuilder {
 
   private SqlSource getSqlSourceFromAnnotations(Method method, Class<?> parameterType, LanguageDriver languageDriver) {
     try {
+      //解析方法上的select、update、insert、delete注解
       Class<? extends Annotation> sqlAnnotationType = getSqlAnnotationType(method);
+      //解析方法上的SelectProvider、InsertProvider、UpdateProvider、DeleteProvider注解
       Class<? extends Annotation> sqlProviderAnnotationType = getSqlProviderAnnotationType(method);
       if (sqlAnnotationType != null) {
         if (sqlProviderAnnotationType != null) {
           throw new BindingException("You cannot supply both a static SQL and SqlProvider to method named " + method.getName());
         }
+        //具体的select、update、insert、delete注解
         Annotation sqlAnnotation = method.getAnnotation(sqlAnnotationType);
+        //注解中的value值，即对应的SQL，这里获取出来是原始的带#或者$符号的sql
         final String[] strings = (String[]) sqlAnnotation.getClass().getMethod("value").invoke(sqlAnnotation);
+        //创建SqlSource
         return buildSqlSourceFromStrings(strings, parameterType, languageDriver);
       } else if (sqlProviderAnnotationType != null) {
         Annotation sqlProviderAnnotation = method.getAnnotation(sqlProviderAnnotationType);

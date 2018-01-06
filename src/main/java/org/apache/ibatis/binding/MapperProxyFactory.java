@@ -43,7 +43,12 @@ public class MapperProxyFactory<T> {
   }
 
   @SuppressWarnings("unchecked")
+  //JDK动态代理
   protected T newInstance(MapperProxy<T> mapperProxy) {
+    //Proxy.newProxyInstance需要3个参数
+    //1.类加载器类型,这里为对应Mapper接口的classLoader,why?MapperRegistry.addMapper,放入map缓存时，knownMappers.put(type, new MapperProxyFactory<T>(type));这个type就是Mapper对应的接口
+    //2.Class[] interfaces：指定newProxyInstance()方法返回的对象要实现哪些接口,这里返回对应的Mapper接口
+    //3.InvocationHandler h：具体是执行器，jdk动态代理指定处理器必须实现InvocationHandler接口，这里是MapperProxy类，实际执行时，是调用的MapperProxy的invoke方法
     return (T) Proxy.newProxyInstance(mapperInterface.getClassLoader(), new Class[] { mapperInterface }, mapperProxy);
   }
 
